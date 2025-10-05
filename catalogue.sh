@@ -47,7 +47,12 @@ fi
 mkdir -p /app
 curl -o /tmp/catalogue.zip https://roboshop-artifacts.s3.amazonaws.com/catalogue-v3.zip &>>$LOG_FILE
 VALIDATE $? "downloading the catalogue.zip file"
-cd /app 
+cd /app
+VALIDATE $? "changing to app directory"
+
+rm -rf /app/*
+VALIDATE $? "Removing existing code"
+
 unzip /tmp/catalogue.zip &>>$LOG_FILE
 VALIDATE $? "unzipping the catalogue.zip file"
 npm install &>>$LOG_FILE

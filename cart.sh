@@ -54,7 +54,7 @@ VALIDATE $? "changing to app directory"
 rm -rf /app/*
 VALIDATE $? "Removing existing code"
 
-unzip /tmp/cart-v3.zip &>>$LOG_FILE
+unzip /tmp/cart.zip &>>$LOG_FILE
 VALIDATE $? "unzippping the cart zip file"
  
 npm install &>>$LOG_FILE

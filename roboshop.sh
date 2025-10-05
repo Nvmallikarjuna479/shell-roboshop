@@ -1,7 +1,7 @@
 #!/bin/bash
 
 AMI_ID="ami-09c813fb71547fc4f"
-SG_ID="sg-041b1e1e7cdd64c00"
+SG_ID="sg-065b981e641b3f1df"
 ZONE_ID="Z037454935YF29LANR6TX"
 DOMAIN_NAME="deployandplay.fun"
 for instance in $@

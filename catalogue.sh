@@ -16,6 +16,7 @@ SCRIPT_NAME=$(echo  $0 | cut -d "." -f1)
 LOG_FILE="$LOGS_DIR/$SCRIPT_NAME.log"
 SCRIPT_DIR=$(pwd)
 mkdir -p $LOGS_DIR
+MONGODB_HOST=mongodb.deployandplay.fun
 echo "Script started executed at: $(date)" | tee -a $LOG_FILE
 
 VALIDATE(){
@@ -33,7 +34,7 @@ VALIDATE $? "disbaling the default nodej"
 dnf module enable nodejs:20 -y &>>$LOG_FILE
 VALIDATE $? "enabling the nodejs version 20 package"
 
-dnf install nodejs -y
+dnf install nodejs -y &>>$LOG_FILE
 VALIDATE $? "installing the nodejs-20 package"
 
 id roboshop &>>$LOG_FILE

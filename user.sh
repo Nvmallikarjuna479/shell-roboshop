@@ -1,72 +1,74 @@
 #!/bin/bash
 
+USERID=$(id -u)
 R="\e[31m"
 G="\e[32m"
 Y="\e[33m"
 N="\e[0m"
 
-USERID=$(id -u)
-if [ $USERID -ne 0 ]; then
-    echo  "ERROR:: Please run this script with root previllages"
-    exit 1
-fi
+LOGS_FOLDER="/var/log/shell-roboshop"
+SCRIPT_NAME=$( echo $0 | cut -d "." -f1 )
+SCRIPT_DIR=$PWD
+MONGODB_HOST=mongodb.daws86s.fun
+LOG_FILE="$LOGS_FOLDER/$SCRIPT_NAME.log" # /var/log/shell-script/16-logs.log
 
-LOGS_DIR="/var/log/shell-roboshop"
-SCRIPT_NAME=$(echo  $0 | cut -d "." -f1)
-LOG_FILE="$LOGS_DIR/$SCRIPT_NAME.log"
-SCRIPT_DIR=$(pwd)
-mkdir -p $LOGS_DIR
+mkdir -p $LOGS_FOLDER
 echo "Script started executed at: $(date)" | tee -a $LOG_FILE
 
-VALIDATE(){
+if [ $USERID -ne 0 ]; then
+    echo "ERROR:: Please run this script with root privelege"
+    exit 1 # failure is other than 0
+fi
+
+VALIDATE(){ # functions receive inputs through args just like shell script args
     if [ $1 -ne 0 ]; then
-        echo -e  " $2 ... $R FAILURE $N"
+        echo -e "$2 ... $R FAILURE $N" | tee -a $LOG_FILE
         exit 1
     else
-        echo -e "$2 ... $G SUCCESS $N"
-    fi 
+        echo -e "$2 ... $G SUCCESS $N" | tee -a $LOG_FILE
+    fi
 }
 
+##### NodeJS ####
 dnf module disable nodejs -y &>>$LOG_FILE
-VALIDATE $? "disabling the default nginx"
-
-dnf module enable nodejs:20 -y &>>$LOG_FILE
-VALIDATE $? "enabling the default nginx 20"
-
+VALIDATE $? "Disabling NodeJS"
+dnf module enable nodejs:20 -y  &>>$LOG_FILE
+VALIDATE $? "Enabling NodeJS 20"
 dnf install nodejs -y &>>$LOG_FILE
-VALIDATE $? "installing nginx"
+VALIDATE $? "Installing NodeJS"
 
 id roboshop &>>$LOG_FILE
 if [ $? -ne 0 ]; then
-    useradd --system --home /app --shell /sbin/nologin --comment "roboshop system user" roboshop
-    VALIDATE $? "creating the system user(roboshop)"
+    useradd --system --home /app --shell /sbin/nologin --comment "roboshop system user" roboshop &>>$LOG_FILE
+    VALIDATE $? "Creating system user"
 else
-    echo -e "system user roboshop us already exits $Y SKIPPING $N"
+    echo -e "User already exist ... $Y SKIPPING $N"
 fi
 
-mkdir -p /app 
-curl -L -o /tmp/user.zip https://roboshop-artifacts.s3.amazonaws.com/user-v3.zip &>>$LOG_FILE
-VALIDATE $? "downloading the user zip file"
+mkdir -p /app
+VALIDATE $? "Creating app directory"
+
+curl -o /tmp/user.zip https://roboshop-artifacts.s3.amazonaws.com/user-v3.zip &>>$LOG_FILE
+VALIDATE $? "Downloading user application"
 
 cd /app 
-VALIDATE $? "changing to app directory"
+VALIDATE $? "Changing to app directory"
 
 rm -rf /app/*
 VALIDATE $? "Removing existing code"
 
 unzip /tmp/user.zip &>>$LOG_FILE
-VALIDATE $? "unzippping the user zip file"
- 
-npm install &>>$LOG_FILE
-VALIDATE $? "installing dependency libs"
+VALIDATE $? "unzip user"
 
-cp -r $SCRIPT_DIR/user.service /etc/systemd/system/user.service
-VALIDATE $? "copying user.service file"
+npm install &>>$LOG_FILE
+VALIDATE $? "Install dependencies"
+
+cp $SCRIPT_DIR/user.service /etc/systemd/system/user.service
+VALIDATE $? "Copy systemctl service"
 
 systemctl daemon-reload
-VALIDATE $? "reloading the system daemon"
-
 systemctl enable user &>>$LOG_FILE
-VALIDATE $? "enabling user service"
-systemctl start user &>>$LOG_FILE
-VALIDATE $? "starting the user service"
+VALIDATE $? "Enable user"
+
+systemctl restart user
+VALIDATE $? "Restarted user"

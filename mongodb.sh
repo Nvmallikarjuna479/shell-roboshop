@@ -14,7 +14,6 @@ fi
 LOGS_DIR="/var/log/shell-roboshop"
 SCRIPT_NAME=$(echo  $0 | cut -d "." -f1)
 LOG_FILE="$LOGS_DIR/$SCRIPT_NAME.log"
-SCRIPT_DIR=$pwd
 mkdir -p $LOGS_DIR
 echo "Script started executed at: $(date)" | tee -a $LOG_FILE
 
@@ -27,7 +26,7 @@ VALIDATE(){
     fi 
 }
 
-cp -r $SCRIPT_DIR/mongo.repo /etc/yum.repos.d/mongo.repo
+cp -r mongo.repo /etc/yum.repos.d/mongo.repo
 VALIDATE $? "copying the mongo.repo ..."
 
 dnf install mongodb-org -y &>>$LOG_FILE
